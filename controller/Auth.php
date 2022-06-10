@@ -5,7 +5,7 @@ class Auth extends CI_Controller {
      public function __construct(){
         parent::__construct();
         $this->load->library('form_validation');
-        $this->load->model('User_m/Users_CI');
+        $this->load->model('user_m/Users_CI');
     }
     
 	public function index(){
@@ -22,11 +22,10 @@ class Auth extends CI_Controller {
         $user = $this->db->get_where('users_ci', ['username' => $username])->row_array();
         if($user){
             if(password_verify($password, $user['password'])){
-               $this->load->view('user/index');
-            }else{
-            echo 'Failed!';
-        }
-            
+               redirect('Home');
+            }else if(!password_verify($password, $user['password'])){
+             echo 'Password not valid!';
+          }       
         }
         
       }
@@ -51,5 +50,22 @@ class Auth extends CI_Controller {
         }
         
     }
-}
-?>
+    
+    public function forgot_password(){
+        $this->form_validation->set_rules('username','Username', 'required');
+		$this->form_validation->set_rules('password','Password', 'required');
+        
+        if($this->form_validation->run()==false){
+            $this->load->view('auth_v/forgot-password');
+		}else{
+            
+          $data = [
+            'password' => password_hash($this->input->post('password'), PASSWORD_DEFAULT)
+          ];
+            
+          $this->Users_CI->new_password('users_ci', $data);
+		  redirect('auth');
+        }
+        
+    }
+}        
